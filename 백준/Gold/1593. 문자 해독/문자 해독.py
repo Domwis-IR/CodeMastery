@@ -1,83 +1,71 @@
 import sys
 
-def char_to_index(ch):
+def compute_target(W):
     """
-    문자를 0~51의 인덱스로 변환합니다.
-    - 대문자 A-Z: 0 ~ 25
-    - 소문자 a-z: 26 ~ 51
+    단어 W의 각 문자 빈도를 사전으로 계산합니다.
     """
-    if 'A' <= ch <= 'Z':
-        return ord(ch) - ord('A')
-    else:
-        return ord(ch) - ord('a') + 26
-
-def compute_pattern_count(W):
-    """
-    단어 W의 각 문자가 등장하는 빈도를 계산하여 배열로 반환합니다.
-    """
-    pattern_count = [0] * 52
+    target = {}
     for ch in W:
-        pattern_count[char_to_index(ch)] += 1
-    return pattern_count
+        target[ch] = target.get(ch, 0) + 1
+    return target
 
-def compute_initial_diff(S, g, pattern_count):
+def compute_initial_window(S, g):
     """
-    S의 첫 윈도우(길이 g)에 대해 diff 배열을 계산합니다.
-    diff[i] = (윈도우 내 문자의 등장 빈도수) - (W의 등장 빈도수)
+    문자열 S의 처음 g개 문자(윈도우)의 빈도를 사전으로 계산합니다.
     """
-    diff = [0] * 52
+    window = {}
     for i in range(g):
-        diff[char_to_index(S[i])] += 1
-    for i in range(52):
-        diff[i] -= pattern_count[i]
-    return diff
+        ch = S[i]
+        window[ch] = window.get(ch, 0) + 1
+    return window
 
-def update_char(diff, matches, idx, delta):
+def is_match(window, target):
     """
-    diff 배열의 idx 위치 값을 delta만큼 업데이트하면서,
-    해당 인덱스의 값이 0인 경우(matches)를 적절히 조정합니다.
+    현재 윈도우의 사전(window)이 target 사전과 일치하는지 확인합니다.
+    target에 포함된 모든 문자가 window에서 동일한 빈도를 가지면 True를 반환합니다.
     """
-    if diff[idx] == 0:
-        matches -= 1
-    diff[idx] += delta
-    if diff[idx] == 0:
-        matches += 1
-    return matches
+    for ch in target:
+        if window.get(ch, 0) != target[ch]:
+            return False
+    return True
 
-def count_permutation_occurrences(W, S, g, s_len):
+def find_anagram_count(W, S):
     """
-    문자열 S 내에서 W의 순열이 부분 문자열로 나타나는 경우의 수를 계산합니다.
+    문자열 S 내에서 단어 W의 순열(애너그램)이 부분 문자열로 나타나는 경우의 수를 계산합니다.
     """
-    pattern_count = compute_pattern_count(W)
-    diff = compute_initial_diff(S, g, pattern_count)
-    
-    # diff 배열의 각 인덱스 값이 0인 개수를 matches에 저장
-    matches = sum(1 for i in range(52) if diff[i] == 0)
-    
-    count = 0
-    if matches == 52:
-        count += 1
+    g = len(W)
+    total_count = 0
+    target = compute_target(W)
+    window = compute_initial_window(S, g)
 
-    # 슬라이딩 윈도우 기법 적용
-    for i in range(g, s_len):
-        out_idx = char_to_index(S[i - g])  # 윈도우에서 빠지는 문자
-        in_idx = char_to_index(S[i])         # 새로 들어오는 문자
+    if is_match(window, target):
+        total_count += 1
 
-        matches = update_char(diff, matches, out_idx, -1)
-        matches = update_char(diff, matches, in_idx, 1)
+    # 슬라이딩 윈도우 방식으로 S 전체를 탐색
+    for i in range(g, len(S)):
+        left_char = S[i - g]   # 윈도우에서 제거될 문자
+        right_char = S[i]        # 새로 추가될 문자
 
-        if matches == 52:
-            count += 1
+        # 윈도우에서 left_char의 빈도를 감소
+        window[left_char] = window.get(left_char, 0) - 1
+        if window[left_char] == 0:
+            del window[left_char]  # 깔끔하게 관리하기 위해 0이 되면 삭제
 
-    return count
+        # 윈도우에 right_char 추가
+        window[right_char] = window.get(right_char, 0) + 1
+
+        if is_match(window, target):
+            total_count += 1
+
+    return total_count
 
 def main():
+    # 첫 줄: g (W의 길이), |S| (S의 길이)
     g, s = map(int, input().split())
     W = input().strip()
     S = input().strip()
 
-
-    result = count_permutation_occurrences(W, S, g, s)
+    result = find_anagram_count(W, S)
     print(result)
 
 if __name__ == '__main__':
