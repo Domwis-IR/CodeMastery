@@ -1,26 +1,28 @@
 from collections import deque
 def order_student(students, student_num):
-    students = deque(students)
     extra_line = []
+
+    students = deque(students)
     n = 1
 
     while students or extra_line:
+        if not students and n != extra_line[-1]:
+            break
+
         if students and students[0] == n:
-            students.popleft()
+            student = students.popleft()
             n += 1
         elif extra_line and n == extra_line[-1]:
-            extra_line.pop()
+            student = extra_line.pop()
             n += 1
-        elif students:
+        else:
             student = students.popleft()
             extra_line.append(student)
-        else:
-            break
     
     # print("extra_line", extra_line)
     # print("received", received)
 
-    return "Nice" if n - 1 == student_num else "Sad"
+    return "Nice" if not extra_line else "Sad"
 
 
 def __main__():
