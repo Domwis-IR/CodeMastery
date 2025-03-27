@@ -1,21 +1,41 @@
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
 from collections import deque
+
 def solution(bridge_length, weight, truck_weights):
-    left_trucks = deque(truck_weights)
-    first = left_trucks.popleft()
-    on_bridge = deque([first])
-    on_bridge_time = deque([1])
-    time = 1
-    
-    while on_bridge:
-        if time - on_bridge_time[0] == bridge_length - 1:
-            on_bridge.popleft()
-            on_bridge_time.popleft()
-        time += 1
-        if left_trucks:
-            if sum(on_bridge) + left_trucks[0] <= weight and len(on_bridge) + 1 <= bridge_length:
-                truck = left_trucks.popleft()
-                on_bridge.append(truck)
-                on_bridge_time.append(time)
-    return time
-    
-    
+    bridge = deque(0 for _ in range(bridge_length))
+    total_weight = 0
+    step = 0
+    truck_weights.reverse()
+
+    while truck_weights:
+        total_weight -= bridge.popleft()
+        if total_weight + truck_weights[-1] > weight:
+            bridge.append(0)
+        else:
+            truck = truck_weights.pop()
+            bridge.append(truck)
+            total_weight += truck
+        step += 1
+
+    step += bridge_length
+
+    return step
