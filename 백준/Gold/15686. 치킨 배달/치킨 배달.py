@@ -3,36 +3,42 @@ from itertools import combinations
 
 input = sys.stdin.readline
 
-# 1. 입력 및 치킨집, 집 좌표 저장
+# 1. 입력 및 집, 치킨집 좌표 저장
 N, M = map(int, input().split())
-houses = []        # 집 좌표 리스트
-chicken_shops = [] # 치킨집 좌표 리스트
+houses = []
+chickens = []
 
 for i in range(N):
     row = list(map(int, input().split()))
-    for j in range(N):
-        if row[j] == 1:      # 집이면
+    for j, value in enumerate(row):
+        if value == 1:
             houses.append((i, j))
-        elif row[j] == 2:    # 치킨집이면
-            chicken_shops.append((i, j))
+        elif value == 2:
+            chickens.append((i, j))
 
-# 거리 계산 함수 (맨해튼 거리)
-def get_distance(p1, p2):
-    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+# 2. 사전 계산: 각 집에서 각 치킨집까지의 맨해튼 거리를 미리 계산
+# dist_matrix[i][j]는 i번째 집에서 j번째 치킨집까지의 거리
+dist_matrix = [
+    [abs(hx - cx) + abs(hy - cy) for cx, cy in chickens]
+    for hx, hy in houses
+]
 
-min_total_distance = float('inf')  # 최소 총 치킨 거리를 저장할 변수
-
-# 2. 가능한 치킨집 M개 조합을 모두 탐색
-for selected in combinations(chicken_shops, M):
+min_total_distance = float('inf')
+# 3. 치킨집 인덱스 조합을 선택하여 각 집의 최소 거리 합을 계산 (조기 종료 포함)
+for comb in combinations(range(len(chickens)), M):
     total_distance = 0
-    # 각 집마다 가장 가까운 치킨집과의 거리를 계산
-    for house in houses:
-        # 선택된 치킨집 조합 내에서 house와의 거리를 리스트에 저장한 후 최소값 취함
-        distances = [get_distance(house, chicken) for chicken in selected]
-        total_distance += min(distances)
-    # 최소 치킨 거리를 갱신
+    for i in range(len(houses)):
+        # 조합에 속한 치킨집 중, i번째 집에 대한 최소 거리를 찾는다.
+        min_distance = float('inf')
+        for c in comb:
+            if dist_matrix[i][c] < min_distance:
+                min_distance = dist_matrix[i][c]
+        total_distance += min_distance
+        # 현재까지의 총합이 이미 최적값 이상이면 더 이상 계산할 필요 없음
+        if total_distance >= min_total_distance:
+            break
     if total_distance < min_total_distance:
         min_total_distance = total_distance
 
-# 3. 결과 출력
+# 4. 결과 출력
 print(min_total_distance)
