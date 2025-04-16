@@ -1,18 +1,27 @@
 def __main__():
-    table_length, farthest_length = map(int, input().split())
-    hamburger_line = list(input())
-    max_people = 0
+    table_length, k = map(int, input().split())
+    line = list(input())
 
-    for i, ch in enumerate(hamburger_line):
-        if ch == "P":
-            # 사람이면 왼쪽부터 가까운 햄버거를 찾음
-            for j in range(i - farthest_length, i + farthest_length + 1):
-                if 0 <= j < table_length and hamburger_line[j] == "H":
-                    hamburger_line[j] = "X"  # 햄버거 먹음
-                    max_people += 1
-                    break
+    people = [i for i, ch in enumerate(line) if ch == 'P']
+    hamburgers = [i for i, ch in enumerate(line) if ch == 'H']
 
-    print(max_people)
+    p_ptr = h_ptr = 0
+    max_match = 0
+
+    while p_ptr < len(people) and h_ptr < len(hamburgers):
+        p = people[p_ptr]
+        h = hamburgers[h_ptr]
+
+        if abs(p - h) <= k:
+            max_match += 1
+            p_ptr += 1
+            h_ptr += 1
+        elif h < p - k:
+            h_ptr += 1
+        else:
+            p_ptr += 1
+
+    print(max_match)
 
 
 if __name__ == "__main__":
